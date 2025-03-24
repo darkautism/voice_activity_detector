@@ -58,8 +58,7 @@ where
         for (chunk, probability) in self.iter.by_ref() {
             if probability > threshold {
                 let chunk_len = chunk.len();
-                if !current_segment.is_empty() && current_segment.len() + chunk_len > max_samples
-                {
+                if !current_segment.is_empty() && current_segment.len() + chunk_len > max_samples {
                     self.state.current_segment = chunk;
                     self.state.current_segment.reserve(max_samples - chunk_len);
                     self.state.consecutive_silence = 0;
