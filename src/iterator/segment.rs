@@ -16,7 +16,7 @@ impl<T> SegmentMergerState<T> {
     pub fn new(threshold: f32, max_samples: usize, min_sil_chunks: usize) -> Self {
         Self {
             threshold,
-            current_segment: Vec::new(),
+            current_segment: Vec::with_capacity(max_samples),
             max_samples,
             min_sil_chunks,
             consecutive_silence: 0,
@@ -57,9 +57,11 @@ where
 
         for (chunk, probability) in self.iter.by_ref() {
             if probability > threshold {
-                if !current_segment.is_empty() && current_segment.len() + chunk.len() > max_samples
+                let chunk_len = chunk.len();
+                if !current_segment.is_empty() && current_segment.len() + chunk_len > max_samples
                 {
                     self.state.current_segment = chunk;
+                    self.state.current_segment.reserve(max_samples - chunk_len);
                     self.state.consecutive_silence = 0;
                     return Some(current_segment);
                 } else {
@@ -69,7 +71,7 @@ where
             } else {
                 consecutive_silence += 1;
                 if consecutive_silence >= min_sil_chunks && !current_segment.is_empty() {
-                    self.state.current_segment = Vec::new();
+                    self.state.current_segment = Vec::with_capacity(max_samples);
                     self.state.consecutive_silence = consecutive_silence;
                     return Some(current_segment);
                 }
